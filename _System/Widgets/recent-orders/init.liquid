@@ -1,0 +1,77 @@
+{% comment -%}
+
+** BC Widget - Recent Orders - Version 1.0 **
+
+Display recent orders by customer with out being logged in using their email address that is passed as a URL parameter that can come from email marketing campaigns.
+
+Inputs:
+
+	w_recent_order_results
+    	- Number of unique recent orders to output
+    w_recent_order_template	string
+    	- Path to recent order product list layout template
+    w_recent_order_fallback	string
+    	- Path to fallback product list layout if visitor's email address is not detected or if the visitor does not have any recent orders
+    w_recent_order_container_class
+    	- Class of recent order parent element. Default layout is using foundation grid block but can customize update parent class and recent order list elements (w_recent_order_template)
+    w_recent_order_header
+    	- Add any html markup inside this liquid capture element that will display the title and any other information before the recent order output.
+    w_recent_order_json	boolean	
+    	-Set to true to output recent orders JSON output. This is helpful during development for customizing your recent order product list layout to retrieve a list of liquid tags that can be used when creating your product layout.
+
+Example: 
+    {% comment -%}<!-- Settings -->{% endcomment -%}
+    {% assign w_recent_order_results = 4 -%}
+    {% assign w_recent_order_template = "/_System/Widgets/recent-orders/template/recent-order-list.tpl" -%}
+    {% assign w_recent_order_fallback = "/_System/Widgets/recent-orders/template/fallback-product-list.tpl" -%}
+    {% assign w_recent_order_container_class = "row small-up-2 medium-up-3 large-up-4" -%}
+    {% capture w_recent_order_header -%}
+    <h1>Recent Orders</h1>
+    {% endcapture -%}
+    {% assign w_recent_order_json = false -%}  
+    {% comment -%}<!-- Init Path -->{% endcomment -%}
+    {% include "/_System/Widgets/recent-orders/init.liquid" -%} 
+
+{% endcomment -%}
+
+{% assign w_recent_order_visitor_id = w_visitor.id -%}
+{% if w_recent_order_visitor_id and w_recent_order_visitor_id != "" -%}
+{module_data resource="orderitems" version="v3" fields="createDate,product" skip="0" limit="50" where="\{'order.entityId':'{{w_recent_order_visitor_id}}','product.enabled':'true','$or':\[\{'product.inStock':'-1'\},\{'product.inStock':\{'$gt':'0'\}\}\]\}"  order="-createDate" collection="RecentOrders"}
+{% if w_recent_order_json -%}
+<pre>{{RecentOrders|json}}</pre>
+{% endif -%}
+{% if RecentOrders.items.size > 0 -%}
+{% if w_recent_order_header -%}{{w_recent_order_header}}{% endif -%}
+<div class="{% if w_recent_order_container_class -%}{{w_recent_order_container_class}}{% endif -%}">
+{% comment -%}<!--Assign Starting Product Count and Product ID Arrays for Duplicate Check-->{% endcomment -%}
+{% assign w_recent_order_count = 0 -%}
+{% assign w_recent_order_product = "" -%}
+{% comment -%}<!-- Begin Recent Order List -->{% endcomment -%}
+{% for item in RecentOrders.items -%}
+{% comment -%}<!-- Output Product If Less Than Results and Unique -->{% endcomment -%}
+{% if w_recent_order_count < w_recent_order_results -%} 
+{% assign w_product_id_stringify = item.product.id | convert:"string" -%}
+{% unless w_recent_order_product contains w_product_id_stringify -%} 
+{% comment -%}<!-- Product Item Path -->{% endcomment -%}
+{% if w_recent_order_template and w_recent_order_template != "" -%}
+{% include "{{w_recent_order_template}}" -%}
+{% else -%}
+{% include "/_System/Widgets/recent-orders/template/recent-order-list.tpl" -%}
+{% endif -%}
+{% comment -%}<!-- If Item is Less than Results and Unique Update Count and Product ID Array -->{% endcomment -%}
+{% assign w_recent_order_product = w_recent_order_product | append:item.product.id | append:"," -%}
+{% assign w_recent_order_count = w_recent_order_count | plus:1 -%}
+{% endunless -%}
+{% else -%}
+{% break -%}
+{% endif -%}
+{% endfor -%}
+</div>
+{% else -%}
+{% comment -%}<!-- Fallback Output -->{% endcomment -%}
+{% include "{{w_recent_order_fallback}}" -%}
+{% endif -%}
+{% else -%}
+{% comment -%}<!-- Fallback Output -->{% endcomment -%}
+{% include "{{w_recent_order_fallback}}" -%}
+{% endif -%}
