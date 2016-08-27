@@ -26,7 +26,7 @@ w_recent_order_results | number | 4| Number of unique recent orders to output
 w_recent_order_template  | string | /_System/Widgets/recent-orders/template/recent-order-list.tpl | Path to recent order product list layout template
 w_recent_order_fallback  | string | /_System/Widgets/recent-orders/template/fallback-product-list.tpl | Path to fallback product list layout if visitor's email address is not detected or if the visitor does not have any recent orders
 w_recent_order_container_class | string | row small-up-2 medium-up-3 large-up-4 | class of recent order parent element. Default layout is using foundation grid block but can customize update parent class and recent order list elements (w_recent_order_template)
-w_recent_order_header | html | <h1>Recent Orders</h1> | Add any html markup inside this liquid capture element that will display the title and any other information before the recent order output.
+w_recent_order_header | html | `<h1>Recent Orders</h1>` | Add any html markup inside this liquid capture element that will display the title and any other information before the recent order output.
 
 
 #### Place initialization code on every template/page of your site that a visitor will enter from and in which you will need to call the visitor data.
